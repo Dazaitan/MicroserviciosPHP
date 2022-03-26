@@ -84,28 +84,58 @@ switch ($_SERVER['REQUEST_METHOD']) {
       break;
     case 'PUT':
       $_PUT = json_decode(file_get_contents('php://input'), true);
-      $cat_id = $_PUT['cat_id'];
-      $consultaExiste = "SELECT count(*) nr FROM res_categorias WHERE cat_id='".$cat_id."';";
-      $rer = mysqli_query($ap, $consultaExiste);
-      $row = mysqli_fetch_array($rer);
-      if ($row['nr']>0) {
-        $cat_activo = $_PUT['cat_activo'];
-        if ($cat_activo === 1 || $cat_activo === 0) {
-          $consultaActivo = "UPDATE res_categorias SET cat_activo=".$cat_activo." WHERE cat_id=".$cat_id.";";
-          mysqli_query($ap, $consultaActivo);
-          $resultado['Mensaje'] = "Actividad actualizada";
+      if (isset($_PUT['op']) && $_PUT['op'] == 'editar cat') {
+        $cat_id = $_PUT['cat_id'];
+        $consultaExiste = "SELECT count(*) nr FROM res_categorias WHERE cat_id='".$cat_id."';";
+        $rer = mysqli_query($ap, $consultaExiste);
+        $row = mysqli_fetch_array($rer);
+        if ($row['nr']>0) {
+          $cat_activo = $_PUT['cat_activo'];
+          if ($cat_activo === 1 || $cat_activo === 0) {
+            $consultaActivo = "UPDATE res_categorias SET cat_activo=".$cat_activo." WHERE cat_id=".$cat_id.";";
+            mysqli_query($ap, $consultaActivo);
+            $resultado['Mensaje'] = "Actividad actualizada";
+          } else {
+              $cat_nombre = $_PUT['cat_nombre'];
+              $cat_img = $_PUT['cat_imagen'];
+              $cat_descripcion = $_PUT['cat_descripcion'];
+              $cat_fecha =date("y-m-d");
+              $cat_hora =date("H:t:s");
+              $consAct = "UPDATE res_categorias SET cat_nombre='".$cat_nombre."', cat_imagen='".$cat_img."', cat_descripcion='".$cat_descripcion."', cat_fecha='".$cat_fecha."', cat_hora='".$cat_hora."' WHERE cat_id=".$cat_id.";";
+              mysqli_query($ap, $consAct);
+              $resultado['Mensaje'] = "Registro actualizado con exito!!";
+              }
         } else {
-          $cat_nombre = $_PUT['cat_nombre'];
-          $cat_img = $_PUT['cat_imagen'];
-          $cat_descripcion = $_PUT['cat_descripcion'];
-          $cat_fecha =date("y-m-d");
-          $cat_hora =date("H:t:s");
-          $consAct = "UPDATE res_categorias SET cat_nombre='".$cat_nombre."', cat_imagen='".$cat_img."', cat_descripcion='".$cat_descripcion."', cat_fecha='".$cat_fecha."', cat_hora='".$cat_hora."' WHERE cat_id=".$cat_id.";";
-          mysqli_query($ap, $consAct);
-          $resultado['Mensaje'] = "Registro actualizado con exito!!";
+            $resultado['Mensaje']= "no se pudo bb";
+          }
+      }else if (isset($_PUT['op']) && $_PUT['op'] == 'editar producto') {
+        $pro_id = $_PUT['pro_id'];
+        $consultaExiste = "SELECT count(*) nr FROM res_productos WHERE pro_id='".$pro_id."';";
+        $rer = mysqli_query($ap, $consultaExiste);
+        $row = mysqli_fetch_array($rer);
+        if ($row['nr']>0) {
+          $pro_activo = $_PUT['pro_activo'];
+          if ($pro_activo === 0 || $pro_activo === 1) {
+            $consultaActivo = "UPDATE res_productos SET pro_activo=".$pro_activo." WHERE pro_id=".$pro_id.";";
+            mysqli_query($ap, $consultaActivo);
+            $resultado['MENSAJE'] = "Actividad actualizada";
+          } else {
+            $pro_codigo = $_PUT['pro_codigo'];
+            $pro_nombre = $_PUT['pro_nombre'];
+            $pro_imagen = $_PUT['pro_imagen'];
+            $pro_descripcion = $_PUT['pro_descripcion'];
+            $pro_cantidad = $_PUT['pro_cantidad'];
+            $pro_ingredientes = $_PUT['pro_ingredientes'];
+            $pro_obs = $_PUT['pro_obs'];
+            $pro_fecha =date("y-m-d");
+            $pro_hora = date("H:t:s");
+            $actualizarRe = "UPDATE res_categorias SET pro_codigo='".$pro_codigo."', pro_nombre='".$pro_nombre."', pro_imagen='".$pro_imagen."', pro_descripcion='".$pro_descripcion."', pro_cantidad='".$pro_cantidad."', pro_ingredientes='".$pro_ingredientes."', pro_obs='".$pro_obs."', pro_fecha='".$pro_fecha."', pro_hora='".$pro_hora."' WHERE pro_id='".$pro_id."';";
+            mysqli_query($ap, $actualizarRe);
+            $resultado['MENSAJE'] = "registro actualizado";
+          }
+        } else {
+          $resultado['MENSAJE'] ="no pudimos :c";
         }
-      } else {
-        $resultado['Mensaje']= "no se pudo bb";
       }
       break;
     case 'DELETE':
