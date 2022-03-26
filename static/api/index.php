@@ -49,10 +49,8 @@ switch ($_SERVER['REQUEST_METHOD']) {
           $selectProId = "SELECT * FROM res_productos WHERE pro_id=".$pro_id;
           $busqPro = mysqli_query($ap, $selectProId);
           $recuperado = array();
-          $i = 0;
-          while ($filas = mysqli_fetch_array($busqPro)) {
-            $recuperado[$i] = $filas;
-            $i++;
+          while ($filas = mysqli_fetch_assoc($busqPro)) {
+            $recuperado = $filas;
           }
           $resultado["plato"] = $recuperado;
         }
@@ -60,7 +58,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
     break;
     case 'POST':
       $_POST = json_decode(file_get_contents('php://input'), true);
-      if(isset($_POST['op'])&& $_POST['op']=='cat'){
+      if(isset($_POST['op'])&& $_POST['op']=='insert cat'){
         $cat_nombre = $_POST['cat_nombre'];
         $cat_imagen = $_POST['cat_imagen'];
         $cat_descripcion = $_POST['cat_descripcion'];
@@ -70,6 +68,18 @@ switch ($_SERVER['REQUEST_METHOD']) {
                 VALUES(Null, '".$cat_nombre."','".$cat_imagen."','".$cat_descripcion."','".$cat_fecha."','".$cat_hora."');";
         mysqli_query($ap, $sqlInsertcat);
         $resultado['Mensaje'] = "registro guardado con exito";
+      } else if(isset($_POST['op']) && $_POST['op']=='insert pro') {
+        $pro_codigo = $_POST['pro_codigo'];
+        $pro_nombre = $_POST['pro_nombre'];
+        $pro_imagen = $_POST['pro_imagen'];
+        $pro_descripcion = $_POST['pro_descripcion'];
+        $pro_cantidad = $_POST['pro_cantidad'];
+        $pro_ingredientes = $_POST['pro_ingredientes'];
+        $pro_obs = $_POST['pro_obs'];
+        $insertPro = "INSERT INTO res_productos(pro_codigo,pro_nombre,pro_imagen,pro_descripcion,pro_cantidad,pro_ingredientes,pro_obs)
+                VALUES('".$pro_codigo."','".$pro_nombre."','".$pro_imagen."','".$pro_descripcion."','".$pro_cantidad."','".$pro_ingredientes."','".$pro_obs."');";
+        mysqli_query($ap, $insertPro);
+        $resultado['Mensaje'] = "producto guardado con exito";
       }
       break;
     case 'PUT':
