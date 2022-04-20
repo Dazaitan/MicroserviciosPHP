@@ -1,6 +1,7 @@
 <?php
 header("Content-Type: application/json");
-include("../bd/conexion.php");
+header('Access-Control-Allow-Origin: *');
+include("../static/bd/conexion.php");
 switch ($_SERVER['REQUEST_METHOD']) {
     case 'GET':
     if (isset($_GET['categorias'])!="") {
@@ -15,7 +16,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
             $arr_cat[$i] = $filas;
             $i++;
           }
-          $resultado["Platos"] = $arr_cat;
+          $resultado["Categorias"] = $arr_cat;
       } else if($vag !='all') {
           $consultaBusq = "SELECT * FROM res_categorias WHERE cat_id=".$vag.";";
           $busq = mysqli_query($ap, $consultaBusq);
@@ -58,30 +59,68 @@ switch ($_SERVER['REQUEST_METHOD']) {
     break;
     case 'POST':
       $_POST = json_decode(file_get_contents('php://input'), true);
-      if(isset($_POST['op'])&& $_POST['op']=='insert cat'){
-        $cat_nombre = $_POST['cat_nombre'];
-        $cat_imagen = $_POST['cat_imagen'];
-        $cat_descripcion = $_POST['cat_descripcion'];
-        $cat_fecha = date("Y-m.d");
-        $cat_hora = date("H:i:s");
-        $sqlInsertcat= "Insert Into res_categorias(cat_id, cat_nombre, cat_imagen, cat_descripcion, cat_fecha, cat_hora)
-                VALUES(Null, '".$cat_nombre."','".$cat_imagen."','".$cat_descripcion."','".$cat_fecha."','".$cat_hora."');";
-        mysqli_query($ap, $sqlInsertcat);
-        $resultado['Mensaje'] = "registro guardado con exito";
-      } else if(isset($_POST['op']) && $_POST['op']=='insert pro') {
-        $pro_codigo = $_POST['pro_codigo'];
-        $pro_nombre = $_POST['pro_nombre'];
-        $pro_imagen = $_POST['pro_imagen'];
-        $pro_descripcion = $_POST['pro_descripcion'];
-        $pro_cantidad = $_POST['pro_cantidad'];
-        $pro_ingredientes = $_POST['pro_ingredientes'];
-        $pro_obs = $_POST['pro_obs'];
-        $insertPro = "INSERT INTO res_productos(pro_codigo,pro_nombre,pro_imagen,pro_descripcion,pro_cantidad,pro_ingredientes,pro_obs)
-                VALUES('".$pro_codigo."','".$pro_nombre."','".$pro_imagen."','".$pro_descripcion."','".$pro_cantidad."','".$pro_ingredientes."','".$pro_obs."');";
-        mysqli_query($ap, $insertPro);
-        $resultado['Mensaje'] = "producto guardado con exito";
-      }
-      break;
+            if(isset($_POST['op']) && $_POST['op']=='cat'){
+                $cat_nombre = $_POST['cat_nombre'];
+                $cat_imagen = $_POST['cat_imagen'];
+                $cat_descripcion = $_POST['cat_descripcion'];
+                $cat_fecha = date("Y-m-d");
+                $cat_hora = date("H:i:s");
+                $sqlInserCat = "Insert Into res_categorias(cat_id,cat_nombre,cat_imagen,cat_descripcion,cat_fecha,cat_hora) 
+                VALUES(Null,'".$cat_nombre."','".$cat_imagen."','".$cat_descripcion."','".$cat_fecha."','".$cat_hora."');";
+                mysqli_query($ap, $sqlInserCat);
+                $resultado['Mensaje'] = "Registro Guardado con éxito!";
+            }elseif(isset($_POST['op']) && $_POST['op']=='mesa'){
+                //$mes_id = $_POST['mes_id'];
+                $identificacion = $_POST['mes_identificacion'];
+                $consMesa = "SELECT * FROM mesa WHERE mes_identificacion=".$identificacion." AND mes_fecha=Current_Date() AND mes_ocupado=1;";
+                $recordset =mysqli_query($ap, $consMesa);
+                $registro = mysqli_fetch_array($recordset);
+                $fecha = date("Y-m-d");
+                $hora = date("H:i:s");
+                if($registro['mes_id'] !='') {
+                    $pro_id = $_POST['pro_id'];
+                    $consultaCatpro = "SELECT * FROM cat_pro WHERE pro_id=".$pro_id;
+                    $recordidp = mysqli_query($ap, $consultaCatpro);
+                    $cp_id = mysqli_fetch_array($recordidp);
+                    $mes_id = $registro['mes_id'];
+                    $pro_cant = $_POST['pro_cant'];
+                    $mes_mesa= $_POST['mes_mesa'];
+                    if ($cp_id['cp_id']!=0) {
+                        $pro_ocupado = 1;
+                        $pro_obs = "";
+                        $sqlInserPed = "INSERT INTO pedido (cp_id, mes_id, ped_fecha, ped_hora, ped_cant) VALUES ('".$cp_id['cp_id']."','".$mes_id."','".$fecha."','".$hora."','".$pro_cant."');";
+                        mysqli_query($ap, $sqlInserPed);
+                        $resultado['Mensaje'] = "Registro guardado";
+                    } else {
+                        $resultado['Mensaje'] = "Producto no existen";
+                    }
+                }else {
+                    $mes_identificacion = $_POST['mes_identificacion'];
+                    $mes_ocupado = 1;
+                    $mes_mesa= $_POST['mes_mesa'];
+                    $mes_obs = $_POST['mes_obs'];
+                    $mes_puestos = $_POST['mes_puestos'];
+                    $sqlInsertMesa = "INSERT INTO mesa(mes_id, mes_identificacion, mes_obs, mes_puestos, mes_mesa, mes_ocupado, mes_fecha, mes_hora)VALUES(Null,'".$mes_identificacion."','".$mes_obs."','".$mes_puestos."','".$mes_mesa."','".$mes_ocupado."','".$fecha."','".$hora."');";
+                    mysqli_query($ap, $sqlInsertMesa);
+                    $pro_id = $_POST['pro_id'];
+                    $consultaCatpro = "SELECT * FROM cat_pro WHERE pro_id=".$pro_id;
+                    $recordidp = mysqli_query($ap, $consultaCatpro);
+                    $cp_id = mysqli_fetch_array($recordidp);
+                    $resultado['Mensaje'] = "Registro Guardado";
+                    $mes_id = $registro['mes_id'];
+                    $pro_cant = $_POST['pro_cant'];
+                    if ($cp_id['cp_id']!=0) {
+                        $pro_ocupado = 1;
+                        $pro_obs = "";
+                        $sqlInserPed = "INSERT INTO pedido(cp_id, mes_id, ped_fecha, ped_hora, ped_cant) VALUES ('".$cp_id['cp_id']."','".$mes_id."','".$fecha."','".$hora."','".$pro_cant."');";
+                        mysqli_query($ap, $sqlInserPed);
+                        $resultado['Mensaje'] = "Registro Guardado";
+                    } else {
+                        $resultado['Mensaje'] = "Producto no existen";
+                    }
+                }
+            }
+          break;
     case 'PUT':
       $_PUT = json_decode(file_get_contents('php://input'), true);
       if (isset($_PUT['op']) && $_PUT['op'] == 'editar cat') {
